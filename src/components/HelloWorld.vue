@@ -1,7 +1,7 @@
 <template>
     <div class="hello">
-        <van-tabs v-model="month">
-            <van-tab :title="b.month + '月'" :name="b.month" v-for="(b,index1) in monthData" :key="index1">
+        <van-tabs v-model="month" animated @change="calTotal(monthData)">
+            <van-tab class="tab-class" :title="b.month + '月'" :name="b.month" v-for="(b,index1) in monthData" :key="index1">
                 <van-row type="flex" align="center" gutter="24" v-for="(a,index) in b.resultsData" :key="index">
                     <van-col class="col" span="4">
                         {{a.day}}
@@ -61,23 +61,7 @@ export default {
     watch: {
         monthData: {
             handler(newVal) {
-                let locIndex = null
-                this.monthData.map((a, index) => {
-                    if (a.month == this.month) {
-                        locIndex = index
-                    }
-                })
-                if (
-                    newVal.length != 0 &&
-                    newVal[locIndex].resultsData.length != 0
-                ) {
-                    this.calresult(newVal[locIndex].resultsData)
-                    this.calrperson(newVal[locIndex].resultsData)
-                    localStorage.setItem(
-                        'monthData',
-                        JSON.stringify(this.monthData)
-                    )
-                }
+                this.calTotal(newVal)
             },
             deep: true,
         },
@@ -89,6 +73,28 @@ export default {
         this.initData()
     },
     methods: {
+        hangeChange() {
+            this.calTotal(this.monthData)
+        },
+        calTotal(newVal) {
+            let locIndex = null
+            this.monthData.map((a, index) => {
+                if (a.month == this.month) {
+                    locIndex = index
+                }
+            })
+            if (
+                newVal.length != 0 &&
+                newVal[locIndex].resultsData.length != 0
+            ) {
+                this.calresult(newVal[locIndex].resultsData)
+                this.calrperson(newVal[locIndex].resultsData)
+                localStorage.setItem(
+                    'monthData',
+                    JSON.stringify(this.monthData)
+                )
+            }
+        },
         initData() {
             let days = new Date().getDate()
             let month = String(new Date().getMonth() + 1)
@@ -97,11 +103,10 @@ export default {
                 this.initMonth(days, month)
             } else {
                 //填写过数据，把之前缓存的数据显示出来，并且展示当天新的天数
-                let index = this.monthData.map((a, index) => {
+                let index = null
+                this.monthData.map((a, index1) => {
                     if (a.month == month) {
-                        return index
-                    } else {
-                        return -1
+                        index = index1
                     }
                 })
                 if (index == -1) {
@@ -123,6 +128,7 @@ export default {
         initMonth(days, month) {
             let monthArr = {
                 month,
+                day: new Date(),
                 resultsData: [{ day: '日', results: '业绩', person: '人数' }],
             }
             for (let i = 0; i < days; i++) {
@@ -153,6 +159,9 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang='scss' scoped>
 .hello {
+    .tab-class {
+        padding-top: 20px;
+    }
 }
 </style>
 
