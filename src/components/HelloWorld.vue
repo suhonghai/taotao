@@ -1,7 +1,7 @@
 <template>
     <div class="hello">
         <van-tabs v-model="month">
-            <van-tab :title="b.month" :name="b.month" v-for="(b,index1) in monthData" :key="index1">
+            <van-tab :title="b.month + '月'" :name="b.month" v-for="(b,index1) in monthData" :key="index1">
                 <van-row type="flex" align="center" gutter="24" v-for="(a,index) in b.resultsData" :key="index">
                     <van-col class="col" span="4">
                         {{a.day}}
@@ -86,7 +86,6 @@ export default {
         this.monthData = localStorage.getItem('monthData')
             ? JSON.parse(localStorage.getItem('monthData'))
             : []
-
         this.initData()
     },
     methods: {
@@ -94,44 +93,46 @@ export default {
             let days = new Date().getDate()
             let month = String(new Date().getMonth() + 1)
             if (this.monthData.length == 0) {
-                let monthArr = {
-                    month,
-                    resultsData: [
-                        { day: '日', results: '业绩', person: '人数' },
-                    ],
-                }
-                for (let i = 0; i < days; i++) {
-                    monthArr.resultsData.push({
-                        day: i + 1,
-                        results: null,
-                        person: null,
-                    })
-                }
-                this.monthData.push(monthArr)
-            } else if (
-                !this.monthData.map((a) => {
+                //判断之前是否填写过数据，若没填写过则初始化数据
+                this.initMonth(days, month)
+            } else {
+                //填写过数据，把之前缓存的数据显示出来，并且展示当天新的天数
+                let index = this.monthData.map((a, index) => {
                     if (a.month == month) {
-                        return true
+                        return index
                     } else {
-                        return false
+                        return -1
                     }
                 })
-            ) {
-                let monthArr = {
-                    month,
-                    resultsData: [
-                        { day: '日', results: '业绩', person: '人数' },
-                    ],
+                if (index == -1) {
+                    //新的月份
+                    this.initMonth(days, month)
+                } else {
+                    //同一个月份
+                    let len = this.monthData[index].resultsData.length
+                    for (let i = len; i < days; i++) {
+                        this.monthData[index].resultsData.push({
+                            day: i + 1,
+                            results: null,
+                            person: null,
+                        })
+                    }
                 }
-                for (let i = 0; i < days; i++) {
-                    monthArr.resultsData.push({
-                        day: i + 1,
-                        results: null,
-                        person: null,
-                    })
-                }
-                this.monthData.push(monthArr)
             }
+        },
+        initMonth(days, month) {
+            let monthArr = {
+                month,
+                resultsData: [{ day: '日', results: '业绩', person: '人数' }],
+            }
+            for (let i = 0; i < days; i++) {
+                monthArr.resultsData.push({
+                    day: i + 1,
+                    results: null,
+                    person: null,
+                })
+            }
+            this.monthData.push(monthArr)
         },
         calresult(arr) {
             this.totalResults = 0
